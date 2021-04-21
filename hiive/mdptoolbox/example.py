@@ -188,6 +188,34 @@ def forest(S=3, r1=4, r2=2, p=0.1, is_sparse=False):
     R[S - 1, 1] = r2
     return(P, R)
 
+def better_forest(S=3, reward_start=1, reward_increase_percent=0.5, fire_prob=0.15):
+    assert S > 1, "The number of states S must be greater than 1."
+    assert (reward_start > 0), "The rewards must be non-negative."
+    assert 0 <= fire_prob <= 1, "The probability p must be in [0; 1]."
+    assert 0 <= reward_increase_percent <= 1, "The probability p must be in [0; 1]."
+    # Definition of Transition matrix
+    P = _np.zeros((2, S, S))
+    P[0, :, :] = (1 - fire_prob) * _np.diag(_np.ones(S - 1), 1)
+    P[0, :, S - 1] = fire_prob
+    P[0, 0, :] = 0
+    P[0, 0, 1] = 1
+    P[0, S - 2, S - 2] = (1 - fire_prob)
+    P[0, S - 1, :] = 0
+    P[0, S - 1, 0] = 1.0
+    P[0, S - 1, S - 1] = 0
+    P[1, :, 0] = 1
+
+    r = [reward_start]
+    ri = reward_start
+    for i in range(S-2):
+        ri = ri+ri*reward_increase_percent
+        r.append(ri)
+    # Definition of Reward matrix
+    R = _np.zeros((S, 2))
+    R[1:, 1] = _np.array(r)
+    R[S-1, 1] = -reward_start*2
+    return(P, R)
+
 
 def _randDense(states, actions, mask):
     """Generate random dense ``P`` and ``R``. See ``rand`` for details.
